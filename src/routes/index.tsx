@@ -73,7 +73,7 @@ function Home() {
       </section>
 
       <p className="mt-16 text-sm text-muted">
-        Nytto Labs · Fredrik Kornelind · hello@nyttolabs.com · This gate is the
+        Nytto Labs · hello@nyttolabs.com · This gate is the
         sample. Paid work is a receipt on your export.
       </p>
     </div>
