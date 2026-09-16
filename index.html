@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ATTEST Gate — catalog in, receipt out</title>
+  <style>
+    :root { --bg:#0b0d10; --ink:#f3eee6; --mut:#9a9488; --line:#262b33; --go:#7dffb3; --kill:#ff6b6b; --keep:#7dffb3; }
+    * { box-sizing:border-box; margin:0; padding:0; }
+    body { background:var(--bg); color:var(--ink); font-family:ui-sans-serif,system-ui,sans-serif; padding:24px 18px 80px; }
+    main { max-width:920px; margin:0 auto; }
+    .k { font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--go); font-weight:700; }
+    h1 { font-size:32px; font-weight:650; margin:8px 0 10px; line-height:1.15; }
+    p { color:var(--mut); line-height:1.5; }
+    .box { margin-top:22px; border:1px solid var(--line); border-radius:16px; padding:16px; }
+    input[type=file] { margin-top:8px; color:var(--ink); }
+    button {
+      margin-top:14px; background:var(--go); color:#04140a; border:0; border-radius:999px;
+      padding:12px 18px; font-weight:800; cursor:pointer;
+    }
+    button[disabled] { opacity:.4; cursor:not-allowed; }
+    table { width:100%; border-collapse:collapse; margin-top:16px; font-size:13px; }
+    th, td { text-align:left; padding:8px 6px; border-bottom:1px solid var(--line); vertical-align:top; }
+    th { color:var(--mut); font-weight:600; font-size:11px; text-transform:uppercase; }
+    .KILL { color:var(--kill); font-weight:800; }
+    .KEEP { color:var(--keep); font-weight:800; }
+    .sum { display:flex; gap:16px; margin-top:14px; flex-wrap:wrap; }
+    .sum b { color:var(--ink); }
+    a { color:var(--go); }
+    code { font-size:12px; background:#161a20; padding:1px 5px; border-radius:4px; }
+  </style>
+</head>
+<body>
+  <main>
+    <p class="k">ATTEST · v0 gate</p>
+    <h1>Catalog in. Receipt out.</h1>
+    <p>Nothing ships until it has an ID and a yes/no.<br />
+    This page is the gate. The file never leaves this device.</p>
+
+    <div class="box">
+      <p><b style="color:var(--ink)">1.</b> Upload a CSV with at least <code>sku</code>, <code>title</code>, <code>price</code>.<br />
+      Optional: <code>cost</code>, <code>temu_cheaper_pct</code>, <code>return_pct</code>.</p>
+      <input id="file" type="file" accept=".csv,text/csv" />
+      <div>
+        <button type="button" id="run" disabled>Run gate</button>
+        <button type="button" id="demo">Run 20 sample rows</button>
+        <button type="button" id="dl" disabled>Download receipt.csv</button>
+      </div>
+      <div class="sum" id="sum"></div>
+    </div>
+
+    
+    <p class="k" style="margin-top:28px">Pay · live Stripe · Nytto Labs</p>
+    <p style="margin-top:8px">
+      <a href="https://buy.stripe.com/fZu4gy0LDbVcdOUfHv8og0F" style="display:inline-block;margin:8px 8px 0 0;background:#7dffb3;color:#04140a;padding:12px 18px;border-radius:999px;font-weight:800;text-decoration:none">Pay $99 Snap</a>
+      <a href="https://buy.stripe.com/aFa3cu9i9cZg4ekeDr8og0G" style="display:inline-block;margin:8px 8px 0 0;border:1px solid #262b33;color:#f3eee6;padding:12px 18px;border-radius:999px;font-weight:800;text-decoration:none">Pay $4,900 Audit</a>
+    </p>
+    <p style="margin-top:10px;font-size:13px">Shopify Admin → Products → Export. After pay: hello@nyttolabs.com</p>
+
+    <div id="out"></div>
+  </main>
+  <script>
+    const DEMO = `sku,title,price,cost,temu_cheaper_pct,return_pct
+SKU-1044,USB-C braid 2m,9.90,2.10,35,22
+SKU-1081,Yoga block cork,19.00,6.40,0,6
+SKU-1102,LED strip 5m RGB,12.90,3.20,40,18
+SKU-1120,Wool throw 130x170,59.00,18.00,0,9
+SKU-1188,Phone stand fold,8.90,1.80,45,28
+SKU-1214,Cast iron skillet 26,39.00,14.00,0,5
+SKU-1240,Kids raincoat S,29.00,8.00,10,34
+SKU-1266,Espresso tamper 58mm,24.00,7.50,0,4
+SKU-1291,Silk pillowcase,14.90,3.10,38,19
+SKU-1310,Oak cutting board,32.00,11.00,0,7
+SKU-1333,Magnetic lash kit,11.90,2.40,50,31
+SKU-1360,Merino beanie,28.00,9.00,0,8
+SKU-1388,Car phone mount,13.90,3.00,42,16
+SKU-1402,Stoneware mug set 4,34.00,12.00,0,6
+SKU-1421,Resistance band pack,16.90,4.20,33,21
+SKU-1444,Linen apron,29.00,10.00,0,7
+SKU-1470,No-name earbuds,22.00,5.50,36,27
+SKU-1492,Scented candle 220g,18.00,5.00,0,5
+SKU-1515,Laptop sleeve 14,15.90,4.00,29,15
+SKU-1540,Herb scissors,14.00,4.20,0,4`;
+
+    let lastRows = [];
+
+    function parseCsv(text) {
+      const lines = text.replace(/^\uFEFF/, "").trim().split(/\r?\n/);
+      const head = splitLine(lines[0]).map(h => h.trim().toLowerCase());
+      return lines.slice(1).filter(Boolean).map(line => {
+        const cells = splitLine(line);
+        const o = {};
+        head.forEach((h, i) => o[h] = (cells[i] || "").trim());
+        return o;
+      });
+    }
+    function splitLine(line) {
+      const out = []; let cur = ""; let q = false;
+      for (const ch of line) {
+        if (ch === '"') q = !q;
+        else if (ch === "," && !q) { out.push(cur); cur = ""; }
+        else cur += ch;
+      }
+      out.push(cur);
+      return out;
+    }
+    function num(v) {
+      const n = parseFloat(String(v).replace(",", "."));
+      return Number.isFinite(n) ? n : 0;
+    }
+    function gate(row, i) {
+      const price = num(row.price || row.unit_price || row.amount);
+      const cost = num(row.cost || row.cogs);
+      const temu = num(row.temu_cheaper_pct || (String(row.temu_hit||'').toLowerCase()==="yes" ? 30 : 0));
+      const ret = num(row.return_pct || row.est_return_pct);
+      const duty = 3;
+      const landed = +(cost + duty).toFixed(2);
+      const title = (row.title || "").toLowerCase();
+      const risky = /silk|lash|mercury|miracle|cure/.test(title);
+      const adsDead = price > 0 && (landed + price * (ret / 100)) > price * 0.55;
+      let decision = "KEEP";
+      let cause = "margin_after_landed";
+      if (temu >= 25) { decision = "KILL"; cause = "temu_clone"; }
+      else if (ret >= 25) { decision = "KILL"; cause = "return_trap"; }
+      else if (risky) { decision = "KILL"; cause = "claim_risk"; }
+      else if (adsDead) { decision = "KILL"; cause = "landed_kills_ads"; }
+      const id = "att_" + String(i + 1).padStart(4, "0");
+      return {
+        claim_id: id,
+        sku: row.sku || row.handle || ("ROW-" + (i + 1)),
+        title: row.title || "",
+        price, cost, landed_eu_eur: landed, duty_eur: duty,
+        temu_cheaper_pct: temu, return_pct: ret,
+        decision, cause
+      };
+    }
+    function render(rows) {
+      lastRows = rows;
+      const keep = rows.filter(r => r.decision === "KEEP").length;
+      const kill = rows.length - keep;
+      document.getElementById("sum").innerHTML =
+        `<span><b>${rows.length}</b> rows</span><span class="KEEP">KEEP ${keep}</span><span class="KILL">KILL ${kill}</span>`;
+      document.getElementById("dl").disabled = rows.length === 0;
+      const head = ["claim_id","sku","decision","cause","landed_eu_eur","temu_cheaper_pct","return_pct","title"];
+      document.getElementById("out").innerHTML =
+        "<table><thead><tr>" + head.map(h => `<th>${h}</th>`).join("") + "</tr></thead><tbody>" +
+        rows.map(r => "<tr>" + head.map(h =>
+          `<td class="${h==="decision"?r.decision:""}">${r[h] ?? ""}</td>`
+        ).join("") + "</tr>").join("") + "</tbody></table>";
+    }
+    function runText(text) {
+      const raw = parseCsv(text);
+      if (!raw.length) { alert("Empty file or missing header row."); return; }
+      render(raw.map(gate));
+    }
+    document.getElementById("file").addEventListener("change", e => {
+      const f = e.target.files[0];
+      document.getElementById("run").disabled = !f;
+    });
+    document.getElementById("run").addEventListener("click", () => {
+      const f = document.getElementById("file").files[0];
+      if (!f) return;
+      const reader = new FileReader();
+      reader.onload = () => runText(String(reader.result));
+      reader.readAsText(f);
+    });
+    document.getElementById("demo").addEventListener("click", () => runText(DEMO));
+    document.getElementById("dl").addEventListener("click", () => {
+      const head = Object.keys(lastRows[0]);
+      const csv = [head.join(",")].concat(lastRows.map(r =>
+        head.map(h => `"${String(r[h]).replace(/"/g,'""')}"`).join(",")
+      )).join("\n");
+      const blob = new Blob([csv], { type: "text/csv" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "attest-receipt.csv";
+      a.click();
+    });
+  </script>
+</body>
+</html>
