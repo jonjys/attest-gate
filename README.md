@@ -1,5 +1,8 @@
 # ATTEST
+
 Catalog in. Receipt out.
-Shopify Admin -> Products -> Export CSV.
-Snap $99 / Audit $4900
-hello@nyttolabs.com
+
+Live: https://attest-gate.netlify.app
+
+Shopify Admin → Products → Export CSV.
+Snap $99 / Audit $4,900 · hello@nyttolabs.com
