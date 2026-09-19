@@ -1,6 +1,9 @@
 {
   "framework": null,
-  "buildCommand": "",
+  "buildCommand": "cp index.html public/index.html",
   "outputDirectory": "public",
-  "cleanUrls": true
+  "cleanUrls": true,
+  "rewrites": [
+    { "source": "/thanks", "destination": "/index.html" }
+  ]
 }

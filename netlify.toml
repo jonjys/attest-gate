@@ -1,3 +1,8 @@
 [build]
 publish = "."
 command = "echo static"
+
+[[redirects]]
+  from = "/thanks"
+  to = "/index.html"
+  status = 200
