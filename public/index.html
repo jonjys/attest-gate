@@ -4,10 +4,205 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>ATTEST — catalog in, receipt out</title>
-  <meta http-equiv="refresh" content="0;url=/" />
-  <style>html,body{background:#07080a;color:#e8eaed;font-family:sans-serif;margin:0;min-height:100%}</style>
+  <meta name="description" content="20 SKUs KEEP or KILL for $99. Shopify export in, receipt.csv out. Claim ID, decision, cause, landed number." />
+  <link rel="icon" href="/logo.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root { --bg:#07080a; --elev:#101216; --fg:#e8eaed; --muted:#8b919a; --subtle:#5c636c; --line:color-mix(in oklab, var(--fg) 12%, transparent); --line-strong:color-mix(in oklab, var(--fg) 22%, transparent); --accent:#d7dde6; --accent-fg:#07080a; --keep:#86c9a8; --kill:#e08a8a; --r-sm:8px; --r-md:12px; --r-lg:20px; --font:"IBM Plex Sans",ui-sans-serif,system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace; }
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{background:var(--bg);color:var(--fg);font-family:var(--font);min-height:100%}
+    body{background-image:linear-gradient(180deg,#07080a 0%,#0c0e12 100%),linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);background-size:auto,48px 48px,48px 48px;background-blend-mode:normal,overlay,overlay}
+    a{color:var(--fg)}
+    button:not(:disabled),[role=button]:not(:disabled){cursor:pointer}
+    .wrap{max-width:1080px;margin:0 auto;padding:20px 20px 96px}
+    header{display:flex;align-items:center;justify-content:space-between;padding:14px 0 28px;border-bottom:1px solid var(--line)}
+    .brand{display:flex;align-items:center;gap:10px;text-decoration:none}
+    .mark{width:28px;height:28px;border:1px solid var(--line-strong);display:grid;place-items:center;font-family:var(--mono);font-size:12px;font-weight:500}
+    .brand span{font-size:13px;font-weight:600;letter-spacing:.16em}
+    .nav{font-size:12px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
+    .hero{padding:56px 0 8px;max-width:720px}
+    .kicker{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
+    h1{margin-top:14px;font-size:clamp(2rem,4.4vw,3.25rem);font-weight:500;letter-spacing:-.035em;line-height:1.08}
+    h2{font-size:18px;font-weight:500}
+    .lede{margin-top:16px;color:var(--muted);font-size:16px;line-height:1.55;max-width:52ch}
+    .actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:28px}
+    .btn{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 18px;border-radius:var(--r-sm);font-size:13px;font-weight:500;text-decoration:none;border:1px solid transparent}
+    .btn-primary{background:var(--accent);color:var(--accent-fg)}
+    .btn-ghost{background:transparent;color:var(--fg);border-color:var(--line-strong)}
+    .btn:disabled{opacity:.35;cursor:not-allowed}
+    .thanks{display:none;margin:36px 0 8px}
+    body.is-paid .thanks{display:block}
+    body.is-paid .hero{display:none}
+    body.is-paid a.snap-cta{display:none}
+    .thanks-panel{background:var(--elev);border:1px solid var(--line-strong);border-radius:var(--r-lg);padding:28px 24px}
+    .thanks-panel h1{margin-top:12px}
+    .thanks-steps{display:grid;gap:12px;margin-top:24px;grid-template-columns:repeat(3,1fr)}
+    .thanks-steps article{background:#0c0e12;border:1px solid var(--line);border-radius:var(--r-md);padding:18px}
+    .thanks-steps h2{margin-top:6px;font-size:16px}
+    .thanks-steps p,.thanks-panel .lede{color:var(--muted)}
+    .thanks-steps p{margin-top:8px;font-size:14px;line-height:1.5}
+    .tag{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.12em;text-transform:uppercase}
+    .paid-note{display:none;margin-top:18px;font-size:13px;color:var(--keep)}
+    body.is-paid .paid-note{display:block}
+    .receipt-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+    .chip{font-family:var(--mono);font-size:11px;letter-spacing:.04em;border:1px solid var(--line);border-radius:999px;padding:5px 10px;color:var(--muted)}
+    .chip.KEEP{color:var(--keep);border-color:color-mix(in oklab,var(--keep) 45%,transparent)}
+    .chip.KILL{color:var(--kill);border-color:color-mix(in oklab,var(--kill) 45%,transparent)}
+    .prices,.steps{display:grid;gap:12px;margin-top:28px}
+    .prices{grid-template-columns:1fr 1fr;margin-top:48px}
+    .steps{grid-template-columns:repeat(3,1fr)}
+    .card{background:var(--elev);border:1px solid var(--line);border-radius:var(--r-lg);padding:22px}
+    .card .tag{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.12em;text-transform:uppercase}
+    .card h2.price{margin-top:8px;font-size:28px;font-weight:500;letter-spacing:-.03em}
+    .card p{margin-top:8px;color:var(--muted);font-size:14px;line-height:1.5}
+    .card .btn{margin-top:18px}
+    .gate{margin-top:28px}
+    .gate-head{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:18px}
+    .gate-head h3{font-size:18px;font-weight:500}
+    .gate-head p{color:var(--muted);font-size:13px;margin-top:4px}
+    .controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+    .file{position:relative;overflow:hidden}
+    .file input{position:absolute;inset:0;opacity:0;cursor:pointer}
+    .sum{display:flex;gap:20px;flex-wrap:wrap;font-family:var(--mono);font-size:12px;color:var(--muted);margin:16px 0 8px}
+    .sum b{color:var(--fg);font-weight:500}
+    .table-wrap{overflow-x:auto;margin-top:8px;border:1px solid var(--line);border-radius:var(--r-md)}
+    table{width:100%;border-collapse:collapse;font-size:12.5px}
+    th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+    th{color:var(--subtle);font-weight:500;font-size:10px;letter-spacing:.12em;text-transform:uppercase;background:#0c0e12}
+    td{font-family:var(--mono);color:var(--fg)}
+    td.title{font-family:var(--font);color:var(--muted)}
+    tr:last-child td{border-bottom:0}
+    .KEEP{color:var(--keep);font-weight:500}
+    .KILL{color:var(--kill);font-weight:500}
+    code{font-family:var(--mono);font-size:11px;background:#161a20;padding:1px 5px;border-radius:4px}
+    .faq{margin-top:28px}
+    .faq details{border-top:1px solid var(--line);padding:14px 0}
+    .faq details:last-child{border-bottom:1px solid var(--line)}
+    .faq summary{cursor:pointer;font-size:15px;font-weight:500}
+    .faq details p{margin-top:8px;color:var(--muted);font-size:14px;line-height:1.55;max-width:68ch}
+    footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--line);display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;font-size:12px;color:var(--subtle)}
+    footer a{color:var(--muted);text-decoration:none}
+    @media (max-width:720px){.prices,.steps,.thanks-steps{grid-template-columns:1fr}.hero{padding-top:36px}}
+  </style>
 </head>
-<body style="background:#07080a;color:#e8eaed;padding:24px">
-  <p><a href="/" style="color:#e8eaed">ATTEST</a></p>
+<body>
+  <div class="wrap">
+    <header>
+      <a class="brand" href="/"><div class="mark" aria-hidden="true">A</div><span>ATTEST</span></a>
+      <p class="nav">Nytto Labs</p>
+    </header>
+    <section class="thanks" id="thanks" hidden>
+      <article class="thanks-panel">
+        <p class="kicker">Snap paid · $99</p>
+        <h1>Payment received. Now send the catalog.</h1>
+        <p class="lede">Stripe has the charge. We do not have your SKUs until you email the export. 48 hours starts when the file arrives.</p>
+        <div class="thanks-steps">
+          <article>
+            <p class="tag">01</p>
+            <h2>Export Shopify — ≤20 SKUs</h2>
+            <p>Admin → Products → Export. Snap is 20 rows. Extra SKUs wait for Audit.</p>
+          </article>
+          <article>
+            <p class="tag">02</p>
+            <h2>Email hello@nyttolabs.com</h2>
+            <p>Send the CSV plus your Stripe receipt. Nothing uploads from this page.</p>
+          </article>
+          <article>
+            <p class="tag">03</p>
+            <h2>Get the KEEP / KILL receipt</h2>
+            <p>48h turnaround. receipt.csv back: claim ID, decision, cause, landed EU number.</p>
+          </article>
+        </div>
+        <div class="receipt-chips" aria-label="What you get back">
+          <span class="chip">claim_id</span>
+          <span class="chip KEEP">KEEP</span>
+          <span class="chip KILL">KILL</span>
+          <span class="chip">cause</span>
+          <span class="chip">landed_eu_eur</span>
+        </div>
+        <div class="actions">
+          <a class="btn btn-primary" href="mailto:hello@nyttolabs.com?subject=ATTEST%20Snap%20export&amp;body=Stripe%20receipt%20attached%20or%20forwarded.%0A%0AShopify%20CSV%20attached%20(%E2%89%A420%20SKUs).">Email hello@nyttolabs.com</a>
+          <a class="btn btn-ghost" href="#gate">See the sample receipt</a>
+        </div>
+      </article>
+    </section>
+    <section class="hero" id="hero">
+      <p class="kicker">Catalog gate · EU landed</p>
+      <h1>20 SKUs. KEEP or KILL. $99.</h1>
+      <p class="lede">Temu clones, the €3 duty, and returns eat ad spend. ATTEST returns a receipt: claim ID, decision, cause, landed number. The file stays on this device until you send it.</p>
+      <div class="actions">
+        <a class="btn btn-primary snap-cta" href="https://buy.stripe.com/fZu4gy0LDbVcdOUfHv8og0F">Pay Snap — $99 / 48h</a>
+        <a class="btn btn-ghost" href="#gate">See the sample receipt</a>
+      </div>
+    </section>
+    <section class="steps">
+      <article class="card"><p class="tag">01</p><h2 style="margin-top:8px">Pay Snap</h2><p>$99 on Stripe. You get a receipt from Nytto Labs, not a login.</p></article>
+      <article class="card"><p class="tag">02</p><h2 style="margin-top:8px">Export Shopify</h2><p>Admin → Products → Export. Send the CSV to hello@nyttolabs.com.</p></article>
+      <article class="card"><p class="tag">03</p><h2 style="margin-top:8px">Get receipt.csv</h2><p>48 hours. Every row has a claim ID, KEEP or KILL, and why.</p></article>
+    </section>
+    <section class="prices">
+      <article class="card"><p class="tag">Snap</p><h2 class="price">$99</h2><p>20 SKUs annotated KEEP / KILL in 48 hours. Shopify export in, receipt.csv out.</p><a class="btn btn-primary snap-cta" href="https://buy.stripe.com/fZu4gy0LDbVcdOUfHv8og0F">Pay Snap</a><p class="paid-note">Paid. Email the export to hello@nyttolabs.com.</p></article>
+      <article class="card"><p class="tag">Audit</p><h2 class="price">$4,900</h2><p>Full catalog, 10 days. Claim ID on every row. You keep the register.</p><a class="btn btn-ghost" href="https://buy.stripe.com/aFa3cu9i9cZg4ekeDr8og0G">Pay audit</a></article>
+    </section>
+    <section class="card gate" id="gate">
+      <div class="gate-head">
+        <div>
+          <h3>Sample receipt — 20 rows, local</h3>
+          <p>Runs in the browser. CSV with <code>sku</code>, <code>title</code>, <code>price</code>. Optional: <code>cost</code>, <code>temu_cheaper_pct</code>, <code>return_pct</code>.</p>
+        </div>
+        <div class="controls">
+          <label class="btn btn-ghost file">Choose CSV<input id="file" type="file" accept=".csv,text/csv" /></label>
+          <button type="button" class="btn btn-primary" id="run" disabled>Run gate</button>
+          <a class="btn btn-ghost" href="/sample.csv">Download sample.csv</a>
+          <button type="button" class="btn btn-ghost" id="dl" disabled>Download receipt.csv</button>
+        </div>
+      </div>
+      <div class="sum" id="sum"></div>
+      <div class="table-wrap" id="out"></div>
+    </section>
+    <section class="card faq" style="margin-top:28px">
+      <p class="tag">After pay</p>
+      <h2 style="margin-top:8px">What we send back</h2>
+      <p>A CSV with <code>claim_id</code>, <code>sku</code>, <code>decision</code>, <code>cause</code>, <code>landed_eu_eur</code>, <code>temu_cheaper_pct</code>, <code>return_pct</code>, <code>title</code>. Causes: <code>temu_clone</code>, <code>return_trap</code>, <code>claim_risk</code>, <code>landed_kills_ads</code>, or <code>margin_after_landed</code>.</p>
+      <p>Mail the export to <a href="mailto:hello@nyttolabs.com">hello@nyttolabs.com</a> with the Stripe receipt. Nothing is uploaded from this page.</p>
+    </section>
+    <section class="faq">
+      <details open><summary>What is this, exactly?</summary><p>A paid KEEP / KILL pass on a catalog after EU landed cost, Temu lookalikes and returns. Not a Shopify app. Not a subscription. You pay once. You keep the receipt.</p></details>
+      <details><summary>Does the file leave my computer?</summary><p>Not from this page. The sample and your upload run in the browser. After you pay, you choose to email the export. That is the only transfer.</p></details>
+      <details><summary>Why $99 and not $4,900 first?</summary><p>Snap is 20 rows so you see the format before a full catalog. Audit is the same columns on every SKU plus a decision log you keep.</p></details>
+      <details><summary>What if my CSV is a raw Shopify export?</summary><p>We map <code>Variant SKU</code>, <code>Title</code>, <code>Variant Price</code>, <code>Cost per item</code>. Extra columns are ignored. Missing cost is treated as 0 and the duty still applies.</p></details>
+    </section>
+    <footer>
+      <p>Nytto Labs · <a href="mailto:hello@nyttolabs.com">hello@nyttolabs.com</a></p>
+      <p>Shopify Admin → Products → Export. After pay, send the file.</p>
+    </footer>
+  </div>
+  <script>
+    (function paidState(){
+      const path = (location.pathname || "/").replace(/\/+$/, "") || "/";
+      const paid = new URLSearchParams(location.search).get("paid") === "1" || path === "/thanks";
+      if (!paid) return;
+      document.body.classList.add("is-paid");
+      document.title = "ATTEST — paid. Send the CSV.";
+      const panel = document.getElementById("thanks");
+      if (panel) panel.removeAttribute("hidden");
+    })();
+    const DEMO = `sku,title,price,cost,temu_cheaper_pct,return_pct\nSKU-1044,USB-C braid 2m,9.90,2.10,35,22\nSKU-1081,Yoga block cork,19.00,6.40,0,6\nSKU-1102,LED strip 5m RGB,12.90,3.20,40,18\nSKU-1120,Wool throw 130x170,59.00,18.00,0,9\nSKU-1188,Phone stand fold,8.90,1.80,45,28\nSKU-1214,Cast iron skillet 26,39.00,14.00,0,5\nSKU-1240,Kids raincoat S,29.00,8.00,10,34\nSKU-1266,Espresso tamper 58mm,24.00,7.50,0,4\nSKU-1291,Silk pillowcase,14.90,3.10,38,19\nSKU-1310,Oak cutting board,32.00,11.00,0,7\nSKU-1333,Magnetic lash kit,11.90,2.40,50,31\nSKU-1360,Merino beanie,28.00,9.00,0,8\nSKU-1388,Car phone mount,13.90,3.00,42,16\nSKU-1402,Stoneware mug set 4,34.00,12.00,0,6\nSKU-1421,Resistance band pack,16.90,4.20,33,21\nSKU-1444,Linen apron,29.00,10.00,0,7\nSKU-1470,No-name earbuds,22.00,5.50,36,27\nSKU-1492,Scented candle 220g,18.00,5.00,0,5\nSKU-1515,Laptop sleeve 14,15.90,4.00,29,15\nSKU-1540,Herb scissors,14.00,4.20,0,4`;
+    let lastRows = [];
+    function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':'&quot;',"'":"&#39;"}[c]));}
+    function splitLine(line){const out=[];let cur="";let q=false;for(const ch of line){if(ch==='"')q=!q;else if(ch===","&&!q){out.push(cur);cur="";}else cur+=ch;}out.push(cur);return out;}
+    function parseCsv(text){const lines=text.replace(/^\uFEFF/,"").trim().split(/\r?\n/);const head=splitLine(lines[0]).map(h=>h.trim().toLowerCase());return lines.slice(1).filter(Boolean).map(line=>{const cells=splitLine(line);const o={};head.forEach((h,i)=>o[h]=(cells[i]||"").trim());return o;});}
+    function pick(row,keys){for(const k of keys){if(row[k]!=null&&String(row[k]).trim()!=="")return row[k];}return "";}
+    function num(v){const n=parseFloat(String(v).replace(",","."));return Number.isFinite(n)?n:0;}
+    function gate(row,i){const price=num(pick(row,["price","variant price","unit_price","amount"]));const cost=num(pick(row,["cost","cost per item","cogs"]));const temu=num(row.temu_cheaper_pct||(String(row.temu_hit||"").toLowerCase()==="yes"?30:0));const ret=num(pick(row,["return_pct","est_return_pct"]));const landed=+(cost+3).toFixed(2);const title=String(pick(row,["title","name"])).toLowerCase();const risky=/silk|lash|mercury|miracle|cure/.test(title);const adsDead=price>0&&(landed+price*(ret/100))>price*0.55;let decision="KEEP",cause="margin_after_landed";if(temu>=25){decision="KILL";cause="temu_clone";}else if(ret>=25){decision="KILL";cause="return_trap";}else if(risky){decision="KILL";cause="claim_risk";}else if(adsDead){decision="KILL";cause="landed_kills_ads";}return{claim_id:"att_"+String(i+1).padStart(4,"0"),sku:pick(row,["sku","variant sku","handle"])||("ROW-"+(i+1)),title:pick(row,["title","name"]),price,cost,landed_eu_eur:landed,duty_eur:3,temu_cheaper_pct:temu,return_pct:ret,decision,cause};}
+    function render(rows){lastRows=rows;const keep=rows.filter(r=>r.decision==="KEEP").length;document.getElementById("sum").innerHTML=`<span><b>${rows.length}</b> rows</span><span class="KEEP">KEEP ${keep}</span><span class="KILL">KILL ${rows.length-keep}</span>`;document.getElementById("dl").disabled=rows.length===0;const head=["claim_id","sku","decision","cause","landed_eu_eur","temu_cheaper_pct","return_pct","title"];document.getElementById("out").innerHTML="<table><thead><tr>"+head.map(h=>`<th>${esc(h)}</th>`).join("")+"</tr></thead><tbody>"+rows.map(r=>"<tr>"+head.map(h=>`<td class="${h==="decision"?r.decision:h==="title"?"title":""}">${esc(r[h]??"")}</td>`).join("")+"</tr>").join("")+"</tbody></table>";}
+    function runText(text){const raw=parseCsv(text);if(!raw.length){alert("Empty file or missing header row.");return;}render(raw.map(gate));}
+    document.getElementById("file").addEventListener("change",e=>{document.getElementById("run").disabled=!e.target.files[0];});
+    document.getElementById("run").addEventListener("click",()=>{const f=document.getElementById("file").files[0];if(!f)return;const reader=new FileReader();reader.onload=()=>runText(String(reader.result));reader.readAsText(f);});
+    runText(DEMO);
+    document.getElementById("dl").addEventListener("click",()=>{const head=Object.keys(lastRows[0]);const csv=[head.join(",")].concat(lastRows.map(r=>head.map(h=>`"${String(r[h]).replace(/"/g,'""')}"`).join(","))).join("\n");const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));a.download="attest-receipt.csv";a.click();});
+  </script>
 </body>
 </html>

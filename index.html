@@ -32,6 +32,24 @@
     .btn-primary{background:var(--accent);color:var(--accent-fg)}
     .btn-ghost{background:transparent;color:var(--fg);border-color:var(--line-strong)}
     .btn:disabled{opacity:.35;cursor:not-allowed}
+    .thanks{display:none;margin:36px 0 8px}
+    body.is-paid .thanks{display:block}
+    body.is-paid .hero{display:none}
+    body.is-paid a.snap-cta{display:none}
+    .thanks-panel{background:var(--elev);border:1px solid var(--line-strong);border-radius:var(--r-lg);padding:28px 24px}
+    .thanks-panel h1{margin-top:12px}
+    .thanks-steps{display:grid;gap:12px;margin-top:24px;grid-template-columns:repeat(3,1fr)}
+    .thanks-steps article{background:#0c0e12;border:1px solid var(--line);border-radius:var(--r-md);padding:18px}
+    .thanks-steps h2{margin-top:6px;font-size:16px}
+    .thanks-steps p,.thanks-panel .lede{color:var(--muted)}
+    .thanks-steps p{margin-top:8px;font-size:14px;line-height:1.5}
+    .tag{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.12em;text-transform:uppercase}
+    .paid-note{display:none;margin-top:18px;font-size:13px;color:var(--keep)}
+    body.is-paid .paid-note{display:block}
+    .receipt-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+    .chip{font-family:var(--mono);font-size:11px;letter-spacing:.04em;border:1px solid var(--line);border-radius:999px;padding:5px 10px;color:var(--muted)}
+    .chip.KEEP{color:var(--keep);border-color:color-mix(in oklab,var(--keep) 45%,transparent)}
+    .chip.KILL{color:var(--kill);border-color:color-mix(in oklab,var(--kill) 45%,transparent)}
     .prices,.steps{display:grid;gap:12px;margin-top:28px}
     .prices{grid-template-columns:1fr 1fr;margin-top:48px}
     .steps{grid-template-columns:repeat(3,1fr)}
@@ -66,7 +84,7 @@
     .faq details p{margin-top:8px;color:var(--muted);font-size:14px;line-height:1.55;max-width:68ch}
     footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--line);display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;font-size:12px;color:var(--subtle)}
     footer a{color:var(--muted);text-decoration:none}
-    @media (max-width:720px){.prices,.steps{grid-template-columns:1fr}.hero{padding-top:36px}}
+    @media (max-width:720px){.prices,.steps,.thanks-steps{grid-template-columns:1fr}.hero{padding-top:36px}}
   </style>
 </head>
 <body>
@@ -75,12 +93,47 @@
       <a class="brand" href="/"><div class="mark" aria-hidden="true">A</div><span>ATTEST</span></a>
       <p class="nav">Nytto Labs</p>
     </header>
-    <section class="hero">
+    <section class="thanks" id="thanks" hidden>
+      <article class="thanks-panel">
+        <p class="kicker">Snap paid · $99</p>
+        <h1>Payment received. Now send the catalog.</h1>
+        <p class="lede">Stripe has the charge. We do not have your SKUs until you email the export. 48 hours starts when the file arrives.</p>
+        <div class="thanks-steps">
+          <article>
+            <p class="tag">01</p>
+            <h2>Export Shopify — ≤20 SKUs</h2>
+            <p>Admin → Products → Export. Snap is 20 rows. Extra SKUs wait for Audit.</p>
+          </article>
+          <article>
+            <p class="tag">02</p>
+            <h2>Email hello@nyttolabs.com</h2>
+            <p>Send the CSV plus your Stripe receipt. Nothing uploads from this page.</p>
+          </article>
+          <article>
+            <p class="tag">03</p>
+            <h2>Get the KEEP / KILL receipt</h2>
+            <p>48h turnaround. receipt.csv back: claim ID, decision, cause, landed EU number.</p>
+          </article>
+        </div>
+        <div class="receipt-chips" aria-label="What you get back">
+          <span class="chip">claim_id</span>
+          <span class="chip KEEP">KEEP</span>
+          <span class="chip KILL">KILL</span>
+          <span class="chip">cause</span>
+          <span class="chip">landed_eu_eur</span>
+        </div>
+        <div class="actions">
+          <a class="btn btn-primary" href="mailto:hello@nyttolabs.com?subject=ATTEST%20Snap%20export&amp;body=Stripe%20receipt%20attached%20or%20forwarded.%0A%0AShopify%20CSV%20attached%20(%E2%89%A420%20SKUs).">Email hello@nyttolabs.com</a>
+          <a class="btn btn-ghost" href="#gate">See the sample receipt</a>
+        </div>
+      </article>
+    </section>
+    <section class="hero" id="hero">
       <p class="kicker">Catalog gate · EU landed</p>
       <h1>20 SKUs. KEEP or KILL. $99.</h1>
       <p class="lede">Temu clones, the €3 duty, and returns eat ad spend. ATTEST returns a receipt: claim ID, decision, cause, landed number. The file stays on this device until you send it.</p>
       <div class="actions">
-        <a class="btn btn-primary" href="https://buy.stripe.com/fZu4gy0LDbVcdOUfHv8og0F">Pay Snap — $99 / 48h</a>
+        <a class="btn btn-primary snap-cta" href="https://buy.stripe.com/fZu4gy0LDbVcdOUfHv8og0F">Pay Snap — $99 / 48h</a>
         <a class="btn btn-ghost" href="#gate">See the sample receipt</a>
       </div>
     </section>
@@ -90,7 +143,7 @@
       <article class="card"><p class="tag">03</p><h2 style="margin-top:8px">Get receipt.csv</h2><p>48 hours. Every row has a claim ID, KEEP or KILL, and why.</p></article>
     </section>
     <section class="prices">
-      <article class="card"><p class="tag">Snap</p><h2 class="price">$99</h2><p>20 SKUs annotated KEEP / KILL in 48 hours. Shopify export in, receipt.csv out.</p><a class="btn btn-primary" href="https://buy.stripe.com/fZu4gy0LDbVcdOUfHv8og0F">Pay Snap</a></article>
+      <article class="card"><p class="tag">Snap</p><h2 class="price">$99</h2><p>20 SKUs annotated KEEP / KILL in 48 hours. Shopify export in, receipt.csv out.</p><a class="btn btn-primary snap-cta" href="https://buy.stripe.com/fZu4gy0LDbVcdOUfHv8og0F">Pay Snap</a><p class="paid-note">Paid. Email the export to hello@nyttolabs.com.</p></article>
       <article class="card"><p class="tag">Audit</p><h2 class="price">$4,900</h2><p>Full catalog, 10 days. Claim ID on every row. You keep the register.</p><a class="btn btn-ghost" href="https://buy.stripe.com/aFa3cu9i9cZg4ekeDr8og0G">Pay audit</a></article>
     </section>
     <section class="card gate" id="gate">
@@ -127,6 +180,15 @@
     </footer>
   </div>
   <script>
+    (function paidState(){
+      const path = (location.pathname || "/").replace(/\/+$/, "") || "/";
+      const paid = new URLSearchParams(location.search).get("paid") === "1" || path === "/thanks";
+      if (!paid) return;
+      document.body.classList.add("is-paid");
+      document.title = "ATTEST — paid. Send the CSV.";
+      const panel = document.getElementById("thanks");
+      if (panel) panel.removeAttribute("hidden");
+    })();
     const DEMO = `sku,title,price,cost,temu_cheaper_pct,return_pct\nSKU-1044,USB-C braid 2m,9.90,2.10,35,22\nSKU-1081,Yoga block cork,19.00,6.40,0,6\nSKU-1102,LED strip 5m RGB,12.90,3.20,40,18\nSKU-1120,Wool throw 130x170,59.00,18.00,0,9\nSKU-1188,Phone stand fold,8.90,1.80,45,28\nSKU-1214,Cast iron skillet 26,39.00,14.00,0,5\nSKU-1240,Kids raincoat S,29.00,8.00,10,34\nSKU-1266,Espresso tamper 58mm,24.00,7.50,0,4\nSKU-1291,Silk pillowcase,14.90,3.10,38,19\nSKU-1310,Oak cutting board,32.00,11.00,0,7\nSKU-1333,Magnetic lash kit,11.90,2.40,50,31\nSKU-1360,Merino beanie,28.00,9.00,0,8\nSKU-1388,Car phone mount,13.90,3.00,42,16\nSKU-1402,Stoneware mug set 4,34.00,12.00,0,6\nSKU-1421,Resistance band pack,16.90,4.20,33,21\nSKU-1444,Linen apron,29.00,10.00,0,7\nSKU-1470,No-name earbuds,22.00,5.50,36,27\nSKU-1492,Scented candle 220g,18.00,5.00,0,5\nSKU-1515,Laptop sleeve 14,15.90,4.00,29,15\nSKU-1540,Herb scissors,14.00,4.20,0,4`;
     let lastRows = [];
     function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':'&quot;',"'":"&#39;"}[c]));}
